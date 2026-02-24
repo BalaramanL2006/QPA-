@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis History - Question Paper Analyzer</title>
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <style>
+        * {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --accent: #a78bfa;
+        }
+
+        /* Smooth scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: linear-gradient(135deg, #ffffff 0%, #f3f0ff 50%, #f0f4ff 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        /* Glassmorphic Card Base */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.08),
+                0 0 1px rgba(99, 102, 241, 0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            box-shadow: 0 12px 48px rgba(99, 102, 241, 0.15),
+                0 0 1px rgba(99, 102, 241, 0.15);
+            border-color: rgba(99, 102, 241, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Navbar */
+        .navbar-glass {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+        }
+
+        /* Gradient Text */
+        .gradient-text {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Difficulty Badge */
+        .badge-easy {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .badge-moderate {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+
+        .badge-hard {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        /* History Card Animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .history-card {
+            animation: fadeInUp 0.6s ease-out both;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        /* Smooth Button */
+        .btn-modern {
+            position: relative;
+            overflow: hidden;
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+            border-radius: 0.875rem;
+            padding: 0.875rem 1.75rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-modern:hover {
+            background: var(--primary-dark);
+            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-modern:active {
+            transform: translateY(0);
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+            box-shadow: 0 8px 30px rgba(239, 68, 68, 0.4);
+        }
+
+        /* Stat Row */
+        .stat-row {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            flex: 1;
+            min-width: 100px;
+            text-align: center;
+            padding: 1rem;
+            background: rgba(99, 102, 241, 0.05);
+            border-radius: 0.75rem;
+            border: 1px solid rgba(99, 102, 241, 0.1);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #64748b;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Collapse Button Styles */
+        .collapse-button {
+            background: none;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: var(--primary);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .collapse-button:hover {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: var(--primary);
+        }
+
+        .collapse-button svg {
+            transition: transform 0.3s ease;
+        }
+
+        /* Collapse Content Animation */
+        .collapse-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            opacity: 0;
+        }
+
+        .collapse-content.show {
+            max-height: 500px;
+            opacity: 1;
+        }
+
+        /* Empty State Icon */
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Button Primary */
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.875rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-block;
+            font-weight: 600;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar-glass sticky top-0 z-40 backdrop-blur-xl">
+        <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-600 to-violet-500 flex items-center justify-center">
+                    <span class="text-white font-bold text-lg">QP</span>
+                </div>
+                <h1 class="text-xl font-bold text-slate-900">Question Paper Analyzer</h1>
+            </div>
+            <div class="flex gap-8 items-center">
+                <a href="/" class="text-slate-600 hover:text-indigo-600 transition font-medium">Analyze</a>
+                <a href="/history" class="text-indigo-600 font-medium flex items-center gap-2"
+                    title="View Analysis History">
+                    <i class="fas fa-clock-rotate-left"></i>
+                    <span class="hidden sm:inline">History</span>
+                </a>
+                <a href="/logout"
+                    class="text-rose-600 hover:text-rose-700 transition font-medium flex items-center gap-2"
+                    title="Logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="hidden sm:inline">Logout</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="min-h-screen">
+        <section class="max-w-6xl mx-auto px-6 py-16">
+            <!-- Header -->
+            <div class="mb-12">
+                <div class="flex items-center justify-between mb-4">
+                    <h1 class="text-5xl font-bold text-slate-900">
+                        Analysis <span class="gradient-text">History</span>
+                    </h1>
+                    {% if history and history|length > 0 %}
+                    <a href="/clear_all_history"
+                        onclick="return confirm('Are you sure you want to delete ALL history? This cannot be undone.');"
+                        class="btn-modern btn-danger flex items-center gap-2">
+                        <i class="fas fa-trash"></i>
+                        <span>Clear All</span>
+                    </a>
+                    {% endif %}
+                </div>
+                <p class="text-slate-600">View all your paper analyses and their difficulty classifications</p>
+            </div>
+
+            <!-- History Container -->
+            {% if history and history|length > 0 %}
+            <div class="grid gap-6" id="history-container">
+                {% for item in history %}
+                <div class="history-card glass-card p-8 show" data-index="{{ loop.index0 }}">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <div class="flex-1">
+                            <h3 class="text-xl font-bold text-slate-900 mb-1">
+                                📄 {{ item.filename or 'Text Input' }}
+                            </h3>
+                            <p class="text-sm text-slate-500">📅 {{ item.date }}</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            {% if item.level == 'Easy Paper' %}
+                            <span
+                                class="inline-block px-4 py-2 bg-emerald-500 text-white rounded-lg text-sm font-semibold shadow-lg">
+                                ✓ Easy Paper
+                            </span>
+                            {% elif item.level == 'Hard Paper' %}
+                            <span
+                                class="inline-block px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-semibold shadow-lg">
+                                ⚠ Hard Paper
+                            </span>
+                            {% else %}
+                            <span
+                                class="inline-block px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-semibold shadow-lg">
+                                ● Moderate Paper
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <button class="mt-4 collapse-button" onclick="toggleCollapse(this)">
+                        <span class="flex items-center gap-2">
+                            <svg class="w-4 h-4 transition-transform" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                            </svg>
+                            View Breakdown
+                        </span>
+                    </button>
+
+                    <div class="collapse-content mt-4">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 border-t border-slate-200">
+                            <div class="text-center">
+                                <p class="text-xs font-medium text-slate-600 uppercase mb-2">Easy Questions</p>
+                                <p class="text-2xl font-bold text-emerald-600">{{ item.easy_count }}</p>
+                                <p class="text-xs text-slate-500">{{ item.easy }}%</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-xs font-medium text-slate-600 uppercase mb-2">Medium Questions</p>
+                                <p class="text-2xl font-bold text-amber-600">{{ item.medium_count }}</p>
+                                <p class="text-xs text-slate-500">{{ item.medium }}%</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-xs font-medium text-slate-600 uppercase mb-2">Hard Questions</p>
+                                <p class="text-2xl font-bold text-rose-600">{{ item.hard_count }}</p>
+                                <p class="text-xs text-slate-500">{{ item.hard }}%</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-xs font-medium text-slate-600 uppercase mb-2">Total</p>
+                                <p class="text-2xl font-bold text-indigo-600">{{ item.total_questions }}</p>
+                                <p class="text-xs text-slate-500">Questions</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <!-- Empty State (when no history exists) -->
+            <div class="glass-card p-12 text-center">
+                <div class="empty-state">
+                    <div class="empty-icon">📋</div>
+                    <h2 class="text-2xl font-bold text-slate-900 mb-2">No Analysis History</h2>
+                    <p class="text-slate-600 mb-6">You haven't analyzed any question papers yet.</p>
+                    <p class="text-xs text-slate-500 mb-6">Start by analyzing your first paper!</p>
+                    <a href="/" class="btn-primary inline-block">
+                        ➜ Analyze Your First Paper
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-20 py-8 border-t border-slate-200/50">
+        <div class="max-w-6xl mx-auto px-6 text-center text-slate-600 text-sm">
+            <p>Question Paper Analyzer • Premium Edition • Built for academic excellence</p>
+        </div>
+    </footer>
+
+    <script>
+        function toggleCollapse(button) {
+            const content = button.parentElement.querySelector('.collapse-content');
+            const icon = button.querySelector('svg');
+
+            content.classList.toggle('show');
+            icon.style.transform = content.classList.contains('show') ? 'rotate(180deg)' : 'rotate(0)';
+        }
+
+        // Set animation delays for history cards
+        document.addEventListener('DOMContentLoaded', function () {
+            const cards = document.querySelectorAll('.history-card');
+            cards.forEach(card => {
+                const index = card.getAttribute('data-index');
+                if (index !== null) {
+                    card.style.animationDelay = (index * 0.1) + 's';
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

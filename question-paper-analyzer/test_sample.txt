@@ -1,0 +1,21 @@
+Question Paper - Mathematics
+
+1. Define the derivative of a function.
+
+2. Explain the concept of integration and its applications.
+
+3. Analyze the convergence of the series sum from n=1 to infinity of 1/n^2.
+
+4. Evaluate the integral of x^2 * e^x from 0 to 1.
+
+5. Justify why the fundamental theorem of calculus is important in mathematics.
+
+6. Criticize the limitations of numerical methods for solving differential equations.
+
+7. List five properties of continuous functions.
+
+8. Summarize the relationship between limits and continuity.
+
+9. Write the definition of a differentiable function.
+
+10. Synthesize a new approach to solve boundary value problems using modern computational methods.

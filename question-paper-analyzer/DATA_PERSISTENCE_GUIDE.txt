@@ -1,0 +1,299 @@
+"""
+DATA PERSISTENCE FLOW - QUESTION PAPER ANALYZER
+Complete guide on how data flows through the application
+"""
+
+================================================================================
+1. DATA STRUCTURE (history.json format)
+================================================================================
+
+history.json stores an ARRAY of analysis entries:
+
+[
+  {
+    "filename": "Math_Exam_2025.pdf",
+    "level": "Hard Paper",
+    "easy": 20.5,
+    "medium": 35.0,
+    "hard": 44.5,
+    "date": "2026-02-12 14:30",
+    "easy_count": 8,
+    "medium_count": 14,
+    "hard_count": 18,
+    "total_questions": 40
+  },
+  {
+    "filename": "Science_Quiz.txt",
+    "level": "Easy Paper",
+    "easy": 62.5,
+    "medium": 25.0,
+    "hard": 12.5,
+    "date": "2026-02-12 13:15",
+    "easy_count": 15,
+    "medium_count": 6,
+    "hard_count": 3,
+    "total_questions": 24
+  }
+]
+
+Each entry contains:
+- filename: Source file name
+- level: Overall difficulty (Easy Paper / Moderate Paper / Hard Paper)
+- easy, medium, hard: Percentage of questions at each level
+- date: Timestamp when analysis was performed
+- easy_count, medium_count, hard_count: Count of questions at each level
+- total_questions: Total questions analyzed
+
+
+================================================================================
+2. APPLICATION STARTUP FLOW
+================================================================================
+
+APP STARTS
+    ↓
+init_db() - Initialize SQLite database
+    ↓
+load_history() - Load history.json into memory
+    ├─ Reads history.json file
+    ├─ Reverses list (newest first)
+    ├─ Stores in global history_data variable
+    ├─ If file missing: history_data = []
+    └─ Prints: "✓ Loaded X entries" or "ℹ No history.json found"
+    ↓
+app.run(debug=True, host='127.0.0.1', port=5000)
+Flask server running and ready to handle requests
+
+
+================================================================================
+3. ANALYSIS FLOW (User uploads/pastes a paper)
+================================================================================
+
+USER UPLOADS PAPER or PASTES TEXT
+    ↓
+POST /analyze route called
+    ├─ Extract text from uploaded file (PDF/DOCX/TXT/JPG/PNG)
+    ├─ Split text into questions
+    ├─ Classify each question (Easy/Medium/Hard)
+    ├─ Count questions at each level
+    ├─ Calculate percentages
+    ├─ Determine overall_level using calculate_overall_difficulty()
+    │   ├─ If hard% > 35% → "Hard Paper"
+    │   ├─ If easy% > 50% → "Easy Paper"
+    │   └─ Else → "Moderate Paper"
+    ├─ Call save_analysis(analysis_result, paper_text, filename)
+    │   ├─ Save to SQLite database (for API)
+    │   └─ Call save_to_json() ← KEY FUNCTION
+    │
+    └─ save_to_json() function:
+        ├─ Create new_entry dictionary
+        ├─ Load existing history.json (if exists)
+        ├─ Append new_entry to list
+        ├─ Write updated list to history.json
+        ├─ Update global history_data (reversed)
+        └─ Print: "✓ Saved to history.json: filename - level"
+    
+    ↓
+RETURN JSON RESPONSE to frontend
+    └─ Shows difficulty percentages and level to user
+
+
+================================================================================
+4. HISTORY PAGE DISPLAY FLOW
+================================================================================
+
+USER NAVIGATES TO /history
+    ↓
+GET /history route called
+    ├─ Returns render_template('history.html', history=history_data)
+    │   └─ Passes global history_data to template
+    ↓
+history.html Jinja2 template processes
+    ├─ {% if history and history|length > 0 %}
+    │   ├─ TRUE: Show "Clear All History" button
+    │   ├─ Loop through each item in history:
+    │   │   ├─ Display filename and date
+    │   │   ├─ Show colored difficulty badge
+    │   │   ├─ Show delete trash icon button
+    │   │   ├─ Provide collapse button for breakdown
+    │   │   └─ Display easy/medium/hard counts & percentages
+    │   └─
+    │   └─ FALSE: Show "No Analysis History" empty state
+    │
+    └─ Browser renders beautiful HTML card layout
+
+
+================================================================================
+5. DELETE SINGLE ENTRY FLOW
+================================================================================
+
+USER CLICKS TRASH ICON ON A CARD
+    ↓
+Confirmation popup: "Delete this history entry?"
+    ├─ User clicks OK
+    │   ↓
+    │   GET /delete_history/<index> route called
+    │   ├─ Get index from loop.index0
+    │   ├─ Remove item at index from global history_data
+    │   ├─ Reverse list (convert from display order back to storage order)
+    │   ├─ Write updated list to history.json
+    │   ├─ Print: "✓ Deleted history entry at index X"
+    │   └─ Redirect to /history
+    │       ↓
+    │       Page refreshes
+    │       └─ Shows updated history without deleted entry
+    │
+    └─ User clicks Cancel
+        └─ No action taken
+
+
+================================================================================
+6. CLEAR ALL HISTORY FLOW
+================================================================================
+
+USER CLICKS "CLEAR ALL HISTORY" BUTTON
+    ↓
+Confirmation popup: "Are you sure you want to delete ALL history? This cannot be undone."
+    ├─ User clicks OK
+    │   ↓
+    │   GET /clear_all_history route called
+    │   ├─ Set global history_data = []
+    │   ├─ Write empty array [] to history.json
+    │   ├─ Print: "✓ Cleared all history entries"
+    │   └─ Redirect to /history
+    │       ↓
+    │       Page refreshes
+    │       └─ Shows "No Analysis History" empty state
+    │
+    └─ User clicks Cancel
+        └─ No action taken
+
+
+================================================================================
+7. FILE READ/WRITE ERROR HANDLING
+================================================================================
+
+SCENARIO: history.json doesn't exist when reading
+    └─ load_history(): Returns empty list, continues normally
+    
+SCENARIO: Corrupted JSON in history.json
+    └─ load_history(): Catches exception, prints error, uses empty list
+    
+SCENARIO: Permission denied when writing history.json
+    └─ save_to_json(): Catches exception, prints error, continues
+    
+SCENARIO: Disk full when saving
+    └─ save_to_json(): Catches exception, prints error, continues
+    
+RESULT: App never crashes - graceful error handling ensures continuity
+
+
+================================================================================
+8. GLOBAL HISTORY_DATA VARIABLE
+================================================================================
+
+Purpose: In-memory cache of history to avoid repeated file reads
+
+Stays in memory:
+- Loaded on app startup (load_history())
+- Updated when new analysis saved (save_to_json())
+- Updated when entry deleted (delete_history())
+- Cleared when all deleted (clear_all_history())
+
+Advantages:
+- Fast access (no file I/O on every request)
+- Persistent across requests
+- Stores entries in NEWEST FIRST order (reversed from storage)
+
+File persistence:
+- history.json is the permanent storage
+- Global history_data syncs with file on changes
+- If server restarts: reload_history() reloads from file
+
+
+================================================================================
+9. JINJA2 TEMPLATE VARIABLES AVAILABLE
+================================================================================
+
+In history.html template:
+{{ history }} → List of all analysis entries (in memory)
+{% for item in history %} → Loop through each entry
+
+Inside loop, access item properties:
+- {{ item.filename }} → Paper file name
+- {{ item.date }} → Analysis timestamp
+- {{ item.level }} → Difficulty level
+- {{ item.easy }} → Easy percentage
+- {{ item.medium }} → Medium percentage
+- {{ item.hard }} → Hard percentage
+- {{ item.easy_count }} → Number of easy questions
+- {{ item.medium_count }} → Number of medium questions
+- {{ item.hard_count }} → Number of hard questions
+- {{ item.total_questions }} → Total questions
+- {{ loop.index0 }} → Zero-based index (for delete button)
+
+
+================================================================================
+10. KEY FILES AND LOCATIONS
+================================================================================
+
+history.json (Same directory as app.py):
+- Path: c:\Users\balar\OneDrive\Documents\QPA\question-paper-analyzer\history.json
+- Format: JSON array of analysis entries
+- Auto-created on first analysis
+- Persists across app restarts
+
+app.py Functions:
+- load_history() → Load file on startup
+- save_to_json() → Save new entry to file
+- delete_history() → Delete single entry
+- clear_all_history() → Clear all entries
+- /history route → Serve history page
+
+history.html:
+- Jinja2 template for displaying history
+- Uses {% if %} for conditional display
+- Uses {% for %} loop for displaying cards
+- JavaScript handles collapse animation
+
+
+================================================================================
+11. TESTING CHECKLIST
+================================================================================
+
+✓ New analysis saves to history.json
+✓ History page displays all past analyses
+✓ Newest analyses appear first
+✓ Difficulty badges show correct colors
+✓ Percentages and counts display correctly
+✓ Delete individual entry removes only that entry
+✓ Delete confirmation works
+✓ Clear all wipes entire history
+✓ Empty state shows when no history
+✓ Page persists after refresh
+✓ File persists after app restart
+✓ Error handling works gracefully
+
+
+================================================================================
+12. COMMON ISSUES & SOLUTIONS
+================================================================================
+
+Issue: History page shows "No Analysis History"
+→ Solution: Check history.json exists, run new analysis to create it
+
+Issue: History not persisting after app restart
+→ Solution: Verify load_history() is called in if __name__ == '__main__'
+
+Issue: Old history disappears after analysis
+→ Solution: Check save_to_json() appends (not overwrites) to file
+
+Issue: Delete button doesn't work
+→ Solution: Verify @app.route('/delete_history/<int:index>') is defined
+
+Issue: "Clear All" button doesn't show
+→ Solution: Verify {% if history and history|length > 0 %} condition
+
+Issue: Animation delays not working
+→ Solution: Verify JavaScript loop sets animationDelay from data-index
+
+"""
