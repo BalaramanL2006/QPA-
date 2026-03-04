@@ -1,0 +1,49 @@
+FAILED TO PARSE JSON at 2026-03-03 20:48:56.835055.
+Error: Expecting ',' delimiter: line 14 column 17 (char 260)
+RAW TEXT FROM AI:
+{
+  "total_questions": 150,
+  "total_marks": 400,
+  "question_types": {
+    "mcq": 0,
+    "short_answer": 100,
+    "long_answer": 0,
+    "problem_solving": 50
+  },
+  "marks_distribution": {
+    "1_mark": 50,
+    "2_mark": 50,
+    "5_mark": 50,
+    "10_mark": 0
+----------------------------------------
+FAILED TO PARSE JSON at 2026-03-03 20:59:14.740595.
+Finish Reason: FinishReason.MAX_TOKENS
+Error: Unterminated string starting at: line 26 column 5 (char 487)
+RAW TEXT FROM AI:
+{
+  "total_questions": 25,
+  "total_marks": 100,
+  "question_types": {
+    "mcq": 0,
+    "short_answer": 18,
+    "long_answer": 7,
+    "problem_solving": 0
+  },
+  "marks_distribution": {
+    "1_mark": 0,
+    "2_mark": 10,
+    "5_mark": 8,
+    "10_mark": 0,
+    "others": 7
+  },
+  "difficulty_analysis": {
+    "easy_percentage": 40,
+    "medium_percentage": 32,
+    "hard_percentage": 28
+  },
+  "bloom_taxonomy_distribution": {
+    "remember": 9,
+    "understand": 9,
+    "apply": 0,
+    "
+----------------------------------------
