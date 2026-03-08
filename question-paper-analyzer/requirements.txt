@@ -5,4 +5,7 @@ python-docx==0.8.11
 Pillow==10.0.0
 pytesseract==0.3.10
 python-dotenv==1.0.1
-google-genai==1.65.0
+huggingface_hub==0.20.3
+Requests==2.31.0
+pdf2image==1.16.3
+Flask-CORS==4.0.0

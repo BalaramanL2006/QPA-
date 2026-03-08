@@ -1,4 +1,3 @@
-import requests
 import json
 
 url = "http://127.0.0.1:5000/analyze"
@@ -6,9 +5,9 @@ url = "http://127.0.0.1:5000/analyze"
 # But let's see if we can just call it (it has @login_required).
 
 # Instead of calling the API over network, let's just call the function in a script.
-from app import analyze_with_ai, app
+from app import analyze_with_ai, app # type: ignore
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv # type: ignore
 
 load_dotenv()
 

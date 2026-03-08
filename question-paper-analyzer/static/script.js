@@ -5,6 +5,10 @@
 
 // Global variable to store chart instance
 let difficultyChart = null;
+let coverageChart = null;
+
+const coveredTopics = 4;
+const uncoveredTopics = 3;
 
 /**
  * Show toast notification
@@ -29,30 +33,35 @@ function showToast(message, type = 'error') {
 /**
  * Tab Switching Functionality
  */
-function switchTab(tabName) {
-    // Hide all tabs
-    document.getElementById('text-tab').classList.add('hidden');
-    document.getElementById('file-tab').classList.add('hidden');
-
-    // Remove active class from all buttons
-    document.querySelectorAll('.tab-button').forEach(btn => {
-        btn.classList.remove('active');
+function switchTab(tabId) {
+    const tabs = document.querySelectorAll(".tab-content");
+    tabs.forEach(tab => {
+        tab.classList.add('hidden');
+        tab.style.display = "none";
     });
 
-    // Show selected tab
-    document.getElementById(tabName + '-tab').classList.remove('hidden');
+    const target = document.getElementById(tabId);
+    if (target) {
+        target.classList.remove('hidden');
+        target.style.display = "block";
+    }
 
-    // Add active class to clicked button
-    event.target.closest('.tab-button').classList.add('active');
+    // Update button states
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('onclick').includes(tabId)) {
+            btn.classList.add('active');
+        }
+    });
 
-    // Show/hide analyze button based on tab
-    const analyzeBtn = document.getElementById('analyze_btn');
-    if (tabName === 'file') {
-        // Hide button for file uploads (auto-submit enabled)
-        analyzeBtn.classList.add('hidden');
-    } else {
-        // Show button for text input
-        analyzeBtn.classList.remove('hidden');
+    // Toggle analyze button
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    if (analyzeBtn) {
+        if (tabId === 'file-tab') {
+            analyzeBtn.classList.remove('hidden'); // Keep it visible for both now if preferred, or toggle
+        } else {
+            analyzeBtn.classList.remove('hidden');
+        }
     }
 }
 
@@ -60,56 +69,52 @@ function switchTab(tabName) {
  * Handle file upload and populate textarea
  */
 document.addEventListener('DOMContentLoaded', function () {
-    const fileInput = document.getElementById('file_upload');
+    const fileInput = document.getElementById('fileInput');
+    const analyzeBtn = document.getElementById('analyzeBtn');
     const uploadArea = document.getElementById('uploadArea');
     const fileNameElement = document.getElementById('file_name');
 
-    // SINGLE file input change listener - handles all file selection methods
+    console.log("DOM content loaded, initializing listeners...");
+
+    if (analyzeBtn) {
+        analyzeBtn.addEventListener('click', () => {
+            console.log("Analyze button clicked");
+            analyzeQuestion();
+        });
+    }
+
     if (fileInput) {
         fileInput.addEventListener('change', function (e) {
             const file = e.target.files[0];
+            console.log("Selected file:", file ? file.name : "None");
             if (file) {
-                // Show file name
-                fileNameElement.textContent = '✓ File selected: ' + file.name;
-
-                // For image files, show a message
-                if (file.type.startsWith('image/')) {
-                    fileNameElement.innerHTML += '<br><small class="text-slate-500">Processing image with OCR...</small>';
+                if (fileNameElement) {
+                    fileNameElement.textContent = '✓ File selected: ' + file.name;
+                    if (file.type.startsWith('image/')) {
+                        fileNameElement.innerHTML += '<br><small class="text-slate-500">Processing image with OCR...</small>';
+                    }
                 }
-
-                // AUTO-SUBMIT: Immediately trigger analysis without click button
-                showProcessingAnimation();
-                setTimeout(() => analyzeQuestion(), 400); // Small delay for UX
             }
         });
     }
 
-    // Upload area - ONLY click handler (no duplicate onclick attribute in HTML)
-    if (uploadArea) {
-        uploadArea.addEventListener('click', () => {
-            fileInput.click();
-        });
+    if (uploadArea && fileInput) {
+        uploadArea.addEventListener('click', () => fileInput.click());
 
-        // Drag and drop functionality
         uploadArea.addEventListener('dragover', (e) => {
             e.preventDefault();
             uploadArea.classList.add('drag-over');
         });
 
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('drag-over');
-        });
+        uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag-over'));
 
         uploadArea.addEventListener('drop', (e) => {
             e.preventDefault();
             uploadArea.classList.remove('drag-over');
-
             const files = e.dataTransfer.files;
             if (files.length > 0) {
                 fileInput.files = files;
-                // Trigger the change event
-                const event = new Event('change', { bubbles: true });
-                fileInput.dispatchEvent(event);
+                fileInput.dispatchEvent(new Event('change', { bubbles: true }));
             }
         });
     }
@@ -135,27 +140,23 @@ function hideProcessingAnimation() {
  * Analyze the question paper
  * Sends the paper text or file to the backend for analysis
  */
-async function analyzeQuestion() {
-    const paperText = document.getElementById('paper_text').value.trim();
-    const fileInput = document.getElementById('file_upload');
-    const errorMessageElement = document.getElementById('error_message');
-    const errorText = document.getElementById('error_text');
-    const analyzeBtn = document.getElementById('analyze_btn');
+async function analyzeQuestion(questionText) {
+    const paperText = questionText || document.getElementById('paper_text').value.trim();
+    const fileInput = document.getElementById('fileInput');
+    const analyzeBtn = document.getElementById('analyzeBtn');
 
-    // Clear previous error messages
-    errorMessageElement.classList.add('hidden');
-    errorText.textContent = '';
-
-    // Validate input
     const hasText = paperText.length > 0;
     const hasFile = fileInput.files && fileInput.files.length > 0;
 
     if (!hasText && !hasFile) {
-        showToast('Please enter or upload a question paper before analyzing.', 'error');
+        alert('Please upload a question paper first.');
         return;
     }
 
+    console.log("Analysis started. File:", hasFile ? fileInput.files[0].name : "None", "Text:", hasText);
+
     // Show loading state
+    showProcessingAnimation();
     analyzeBtn.disabled = true;
     const originalButtonText = analyzeBtn.innerHTML;
     analyzeBtn.innerHTML = `
@@ -204,6 +205,8 @@ async function analyzeQuestion() {
                 filename: 'text-input'
             };
 
+            console.log("Analyzing with Syllabus:", syllabusArray);
+
             // Debug logging for the request payload
             console.log("Sending JSON request to /analyze:", requestBody);
 
@@ -219,22 +222,14 @@ async function analyzeQuestion() {
         const data = await response.json();
 
         if (response.ok) {
-            // Validate data structure before rendering
-            if (!data.detailed_analysis && !data.questions) {
-                console.error("Missing detailed analysis in response:", data);
-                showToast('Analysis failed to produce detailed results.', 'error');
+            // Simplified validation per user request
+            if (!data.difficulty) {
+                console.error("Difficulty not returned from backend:", data);
+                showToast('Difficulty level missing from response.', 'error');
                 return;
             }
 
-            // Handle both potential key names for questions list
-            data.questions = data.detailed_analysis || data.questions;
-
-            if (data.questions.length === 0) {
-                showToast('No questions were found to analyze.', 'error');
-                return;
-            }
-
-            // Display results with animation
+            // Display results
             displayResults(data);
             showToast('Analysis completed successfully!', 'success');
         } else {
@@ -259,45 +254,38 @@ async function analyzeQuestion() {
 
 /**
  * Display analysis results with animations
- * Updates the results section with analysis data and creates a chart
+ * Updates the results section with analysis data
  */
 function displayResults(data) {
-    // Total questions
-    const totalElement = document.getElementById('total_questions');
-    if (totalElement) {
-        animateCounter('total_questions', 0, data.total_questions, 1200);
+    // Update metric boxes
+    if (data.total_questions !== undefined) {
+        document.getElementById("totalQuestions").innerText = data.total_questions;
+        document.getElementById("easyQuestions").innerText = data.easy_questions;
+        document.getElementById("mediumQuestions").innerText = data.medium_questions;
+        document.getElementById("hardQuestions").innerText = data.hard_questions;
     }
 
-    // Individual counts
-    animateCounter('covered_count', 0, data.from_covered_syllabus, 1200);
-    animateCounter('uncovered_count', 0, data.from_uncovered_syllabus, 1200);
-    animateCounter('out_count', 0, data.out_of_syllabus, 1200);
+    // Update Overall Difficulty Section per user request
+    const difficultyLevelText = document.getElementById('difficultyLevel');
 
-    // Percentages with decimal count-up
-    animateCounter('covered_percent', 0, data.covered_percentage, 1200, true);
-    animateCounter('uncovered_percent', 0, data.uncovered_percentage, 1200, true);
-    animateCounter('out_percent', 0, data.out_percentage, 1200, true);
+    if (difficultyLevelText) {
+        // Clear previous animations/classes if any
+        const level = data.difficulty || 'Medium';
+        difficultyLevelText.innerText = level;
 
-    // Create coverage chart with animation
-    createChart(data.from_covered_syllabus, data.from_uncovered_syllabus, data.out_of_syllabus, data.total_questions);
-
-    // Update Overall Difficulty Section
-    const difficultyCard = document.getElementById('difficulty_card');
-    const difficultyLevelText = document.getElementById('difficulty_level_text');
-
-    if (difficultyCard && difficultyLevelText) {
-        difficultyCard.classList.remove('bg-success-subtle', 'text-success', 'bg-warning-subtle', 'text-warning', 'bg-danger-subtle', 'text-danger');
-        const level = data.overall_difficulty;
-        difficultyLevelText.textContent = level;
-
-        if (level === 'Easy Paper') {
-            difficultyCard.classList.add('bg-success-subtle', 'text-success');
-        } else if (level === 'Hard Paper') {
-            difficultyCard.classList.add('bg-danger-subtle', 'text-danger');
-        } else {
-            difficultyCard.classList.add('bg-warning-subtle', 'text-warning');
+        // Optional: Keep the color coding if the box exists
+        const box = document.querySelector('.difficulty-box');
+        if (box) {
+            // Reset colors
+            box.classList.remove('text-emerald-600', 'text-amber-600', 'text-rose-600');
+            if (level.includes('Easy')) box.classList.add('text-emerald-600');
+            else if (level.includes('Hard')) box.classList.add('text-rose-600');
+            else box.classList.add('text-amber-600');
         }
     }
+
+    // Update Coverage Chart
+    updateCoverageChart();
 
     // Show results section
     const resultsSection = document.getElementById('results_section');
@@ -307,175 +295,11 @@ function displayResults(data) {
     }
 }
 
-/**
- * Enhanced Count-Up Animation
- */
-function animateCounter(elementId, start, end, duration, isPercent = false) {
-    const obj = document.getElementById(elementId);
-    if (!obj) return;
-
-    let startTimestamp = null;
-    const step = (timestamp) => {
-        if (!startTimestamp) startTimestamp = timestamp;
-        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        const value = progress * (end - start) + start;
-
-        if (isPercent) {
-            obj.textContent = value.toFixed(1) + '%';
-        } else {
-            obj.textContent = Math.floor(value);
-        }
-
-        if (progress < 1) {
-            window.requestAnimationFrame(step);
-        } else {
-            obj.textContent = isPercent ? end + '%' : end;
-        }
-    };
-    window.requestAnimationFrame(step);
-}
-
-/**
- * Animate number counting
- */
-function animateValue(elementId, start, end, duration) {
-    const element = document.getElementById(elementId);
-    if (!element) return;
-
-    let current = start;
-    const increment = (end - start) / (duration / 16);
-
-    const timer = setInterval(() => {
-        current += increment;
-        if (current >= end) {
-            element.textContent = end;
-            clearInterval(timer);
-        } else {
-            element.textContent = Math.floor(current);
-        }
-    }, 16);
-}
-
-/**
- * Create a beautiful donut chart showing syllabus coverage
- */
-function createChart(covered, uncovered, out, total) {
-    const canvas = document.getElementById('coverageChart');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-
-    // Destroy previous chart if it exists
-    if (difficultyChart) {
-        difficultyChart.destroy();
-    }
-
-    // Custom plugin for center text
-    const centerTextPlugin = {
-        id: 'centerText',
-        beforeDraw: (chart) => {
-            const { ctx, width, height } = chart;
-            ctx.restore();
-            const fontSize = (height / 160).toFixed(2);
-            ctx.font = `bold ${fontSize}em Plus Jakarta Sans`;
-            ctx.textBaseline = 'middle';
-            ctx.fillStyle = '#0f172a';
-
-            const text = total.toString();
-            const textX = Math.round((width - ctx.measureText(text).width) / 2);
-            const textY = height / 2 - 10;
-            ctx.fillText(text, textX, textY);
-
-            ctx.font = `600 0.8em Inter`;
-            ctx.fillStyle = '#64748b';
-            const subtext = "Questions";
-            const subtextX = Math.round((width - ctx.measureText(subtext).width) / 2);
-            const subtextY = height / 2 + 15;
-            ctx.fillText(subtext, subtextX, subtextY);
-
-            ctx.save();
-        }
-    };
-
-    difficultyChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Covered', 'Uncovered', 'Out of Syllabus'],
-            datasets: [{
-                data: [covered, uncovered, out],
-                backgroundColor: [
-                    'rgba(16, 185, 129, 0.85)',
-                    'rgba(245, 158, 11, 0.85)',
-                    'rgba(239, 68, 68, 0.85)'
-                ],
-                borderWidth: 0,
-                hoverOffset: 20,
-                borderRadius: 8,
-                spacing: 4
-            }]
-        },
-        options: {
-            cutout: '75%',
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: {
-                duration: 1500,
-                easing: 'easeOutQuart',
-                animateRotate: true,
-                animateScale: true
-            },
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        color: document.body.classList.contains('dark-mode') ? '#f8fafc' : '#0f172a',
-                        padding: 20,
-                        usePointStyle: true,
-                        font: { size: 12, weight: '600' }
-                    }
-                },
-                tooltip: {
-                    padding: 12,
-                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                    callbacks: {
-                        label: (context) => {
-                            const val = context.raw;
-                            const pct = ((val / total) * 100).toFixed(1);
-                            return ` ${context.label}: ${val} (${pct}%)`;
-                        }
-                    }
-                }
-            }
-        },
-        plugins: [centerTextPlugin]
-    });
-}
 
 /**
  * Dark Mode & PDF Export Initialization
  */
 document.addEventListener('DOMContentLoaded', () => {
-    // Theme Toggle
-    const themeBtn = document.getElementById('theme_toggle');
-    const body = document.body;
-
-    if (localStorage.getItem('theme') === 'dark') {
-        body.classList.add('dark-mode');
-        themeBtn.querySelector('i').className = 'fas fa-sun text-amber-400 text-xl';
-    }
-
-    themeBtn.addEventListener('click', () => {
-        body.classList.toggle('dark-mode');
-        const isDark = body.classList.contains('dark-mode');
-        localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        themeBtn.querySelector('i').className = isDark ? 'fas fa-sun text-amber-400 text-xl' : 'fas fa-moon text-slate-600 text-xl';
-
-        // Refresh chart legend color
-        if (difficultyChart) {
-            difficultyChart.options.plugins.legend.labels.color = isDark ? '#f8fafc' : '#0f172a';
-            difficultyChart.update();
-        }
-    });
-
     // PDF Download
     const downloadBtn = document.getElementById('download_report');
     if (downloadBtn) {
@@ -490,7 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const canvas = await html2canvas(element, {
                     scale: 2,
                     useCORS: true,
-                    backgroundColor: body.classList.contains('dark-mode') ? '#0f172a' : '#ffffff'
+                    backgroundColor: '#ffffff'
                 });
 
                 const imgData = canvas.toDataURL('image/png');
@@ -518,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function resetAnalyzer() {
     // Clear textarea and file input
     document.getElementById('paper_text').value = '';
-    document.getElementById('file_upload').value = '';
+    document.getElementById('fileInput').value = '';
     document.getElementById('file_name').textContent = '';
 
     // Hide results section
@@ -545,4 +369,57 @@ function resetAnalyzer() {
 
     // Smooth scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/**
+ * Update Syllabus Coverage Chart using static data
+ */
+function updateCoverageChart() {
+    const ctx = document.getElementById("coverageChart");
+    if (!ctx) return;
+
+    if (coverageChart) {
+        coverageChart.destroy();
+    }
+
+    coverageChart = new Chart(ctx, {
+        type: "pie",
+        data: {
+            labels: ["Covered Topics", "Uncovered Topics"],
+            datasets: [{
+                data: [coveredTopics, uncoveredTopics],
+                backgroundColor: ["#4CAF50", "#F44336"],
+                borderWidth: 1,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true,
+                        font: {
+                            size: 14,
+                            weight: '600'
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            const label = context.label || '';
+                            const value = context.raw || 0;
+                            const total = coveredTopics + uncoveredTopics;
+                            const percentage = Math.round((value / total) * 100);
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
 }

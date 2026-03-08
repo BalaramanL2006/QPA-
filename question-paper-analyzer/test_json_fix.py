@@ -1,7 +1,7 @@
-from app import analyze_with_ai, app
+from app import analyze_with_ai, app # type: ignore
 import json
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv # type: ignore
 
 load_dotenv()
 

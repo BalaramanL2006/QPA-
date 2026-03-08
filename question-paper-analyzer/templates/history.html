@@ -72,10 +72,9 @@
 
         /* Navbar */
         .navbar-glass {
-            background: rgba(255, 255, 255, 0.6);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
         }
 
         /* Gradient Text */
@@ -259,28 +258,22 @@
 
 <body>
     <!-- Navbar -->
-    <nav class="navbar-glass sticky top-0 z-40 backdrop-blur-xl">
-        <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+    <nav class="navbar-glass sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <div
-                    class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-600 to-violet-500 flex items-center justify-center">
+                    class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-600/20">
                     <span class="text-white font-bold text-lg">QP</span>
                 </div>
-                <h1 class="text-xl font-bold text-slate-900">Question Paper Analyzer</h1>
+                <h1 class="text-xl font-bold text-slate-900 tracking-tight">Question Paper Analyzer</h1>
             </div>
             <div class="flex gap-8 items-center">
-                <a href="/" class="text-slate-600 hover:text-indigo-600 transition font-medium">Analyze</a>
-                <a href="/history" class="text-indigo-600 font-medium flex items-center gap-2"
-                    title="View Analysis History">
-                    <i class="fas fa-clock-rotate-left"></i>
-                    <span class="hidden sm:inline">History</span>
-                </a>
+                <div class="hidden md:flex gap-8">
+                    <a href="/" class="text-slate-500 hover:text-slate-900 font-medium transition-colors">Analyze</a>
+                    <a href="/history" class="text-indigo-600 font-bold">History</a>
+                </div>
                 <a href="/logout"
-                    class="text-rose-600 hover:text-rose-700 transition font-medium flex items-center gap-2"
-                    title="Logout">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span class="hidden sm:inline">Logout</span>
-                </a>
+                    class="px-5 py-2 rounded-xl bg-red-50 text-red-600 border border-red-100 font-bold hover:bg-red-100 transition-all">Logout</a>
             </div>
         </div>
     </nav>
@@ -294,12 +287,14 @@
                         Analysis <span class="gradient-text">History</span>
                     </h1>
                     {% if history and history|length > 0 %}
-                    <a href="/clear_all_history"
-                        onclick="return confirm('Are you sure you want to delete ALL history? This cannot be undone.');"
-                        class="btn-modern btn-danger flex items-center gap-2">
-                        <i class="fas fa-trash"></i>
-                        <span>Clear All</span>
-                    </a>
+                    <form action="/clear_all_history" method="POST"
+                        onsubmit="return confirm('Are you sure you want to delete ALL history? This cannot be undone.');"
+                        class="inline">
+                        <button type="submit" class="btn-modern btn-danger flex items-center gap-2">
+                            <i class="fas fa-trash"></i>
+                            <span>Clear All</span>
+                        </button>
+                    </form>
                     {% endif %}
                 </div>
                 <p class="text-slate-600">View all your paper analyses and their difficulty classifications</p>
@@ -308,70 +303,51 @@
             <!-- History Container -->
             {% if history and history|length > 0 %}
             <div class="grid gap-6" id="history-container">
-                {% for item in history %}
-                <div class="history-card glass-card p-8 show" data-index="{{ loop.index0 }}">
-                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                {% for analysis in history %}
+                <div class="bg-white rounded-3xl p-8 shadow-xl border border-slate-100 history-card show"
+                    id="analysis-{{ analysis.id }}" data-index="{{ loop.index0 }}">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                         <div class="flex-1">
-                            <h3 class="text-xl font-bold text-slate-900 mb-1">
-                                📄 {{ item.filename or 'Text Input' }}
+                            <h3 class="text-2xl font-bold text-slate-900 mb-2">
+                                <span class="text-indigo-600 mr-2"><i class="fas fa-file-lines"></i></span>
+                                {{ analysis.filename or 'Text Input' }}
                             </h3>
-                            <p class="text-sm text-slate-500">📅 {{ item.date }}</p>
+                            <div class="flex items-center gap-4 text-slate-500 font-medium">
+                                <span class="flex items-center gap-2"><i class="fas fa-calendar-alt text-xs"></i> {{
+                                    analysis.date }}</span>
+                            </div>
                         </div>
                         <div class="flex items-center gap-3">
-                            {% if item.level == 'Easy Paper' %}
-                            <span
-                                class="inline-block px-4 py-2 bg-emerald-500 text-white rounded-lg text-sm font-semibold shadow-lg">
-                                ✓ Easy Paper
-                            </span>
-                            {% elif item.level == 'Hard Paper' %}
-                            <span
-                                class="inline-block px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-semibold shadow-lg">
-                                ⚠ Hard Paper
-                            </span>
-                            {% else %}
-                            <span
-                                class="inline-block px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-semibold shadow-lg">
-                                ● Moderate Paper
-                            </span>
-                            {% endif %}
+                            <div class="flex items-center gap-2 mr-4">
+                                {% if analysis.difficulty == 'Easy Paper' %}
+                                <span
+                                    class="inline-block px-4 py-2 bg-emerald-500 text-white rounded-lg text-sm font-semibold shadow-lg">
+                                    ✓ Easy Paper
+                                </span>
+                                {% elif analysis.difficulty == 'Hard Paper' %}
+                                <span
+                                    class="inline-block px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-semibold shadow-lg">
+                                    ⚠ Hard Paper
+                                </span>
+                                {% else %}
+                                <span
+                                    class="inline-block px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-semibold shadow-lg">
+                                    ● {{ analysis.difficulty or 'Moderate Paper' }}
+                                </span>
+                                {% endif %}
+                            </div>
+
+                            <div class="history-actions flex items-center gap-2">
+
+                                <button onclick="deleteAnalysis('{{ analysis.id }}')"
+                                    class="delete-btn w-10 h-10 flex items-center justify-center rounded-xl bg-rose-50 text-rose-600 border border-rose-100 hover:bg-rose-100 transition-all shadow-sm"
+                                    title="Delete Record">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    <button class="mt-4 collapse-button" onclick="toggleCollapse(this)">
-                        <span class="flex items-center gap-2">
-                            <svg class="w-4 h-4 transition-transform" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                            </svg>
-                            View Breakdown
-                        </span>
-                    </button>
-
-                    <div class="collapse-content mt-4">
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 border-t border-slate-200">
-                            <div class="text-center">
-                                <p class="text-xs font-medium text-slate-600 uppercase mb-2">Easy Questions</p>
-                                <p class="text-2xl font-bold text-emerald-600">{{ item.easy_count }}</p>
-                                <p class="text-xs text-slate-500">{{ item.easy }}%</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-xs font-medium text-slate-600 uppercase mb-2">Medium Questions</p>
-                                <p class="text-2xl font-bold text-amber-600">{{ item.medium_count }}</p>
-                                <p class="text-xs text-slate-500">{{ item.medium }}%</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-xs font-medium text-slate-600 uppercase mb-2">Hard Questions</p>
-                                <p class="text-2xl font-bold text-rose-600">{{ item.hard_count }}</p>
-                                <p class="text-xs text-slate-500">{{ item.hard }}%</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-xs font-medium text-slate-600 uppercase mb-2">Total</p>
-                                <p class="text-2xl font-bold text-indigo-600">{{ item.total_questions }}</p>
-                                <p class="text-xs text-slate-500">Questions</p>
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 {% endfor %}
             </div>
@@ -401,11 +377,46 @@
 
     <script>
         function toggleCollapse(button) {
-            const content = button.parentElement.querySelector('.collapse-content');
-            const icon = button.querySelector('svg');
-
+            const content = button.closest('.history-card').querySelector('.collapse-content');
             content.classList.toggle('show');
-            icon.style.transform = content.classList.contains('show') ? 'rotate(180deg)' : 'rotate(0)';
+        }
+
+        function deleteAnalysis(id) {
+            if (!id) {
+                console.error("Attempted to delete item with invalid ID:", id);
+                return;
+            }
+
+            if (!confirm("Delete this analysis from history?")) {
+                return;
+            }
+
+            fetch(`/delete-analysis/${id}`, {
+                method: 'POST'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        const element = document.getElementById(`analysis-${id}`);
+                        if (element) {
+                            element.style.opacity = '0';
+                            element.style.transform = 'translateY(20px)';
+                            setTimeout(() => {
+                                element.remove();
+                                const container = document.getElementById('history-container');
+                                if (container && container.children.length === 0) {
+                                    location.reload();
+                                }
+                            }, 300);
+                        }
+                    } else {
+                        alert("Failed to delete analysis: " + (data.message || "Unknown error"));
+                    }
+                })
+                .catch(error => {
+                    console.error("Delete error:", error);
+                    alert("An error occurred while deleting the analysis.");
+                });
         }
 
         // Set animation delays for history cards

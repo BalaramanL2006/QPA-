@@ -5,179 +5,137 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Account - Question Paper Analyzer</title>
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <!-- Google Fonts -->
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap"
         rel="stylesheet">
-    <style>
-        :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --accent: #a78bfa;
-        }
 
+    <style>
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #f3f0ff 0%, #f0f4ff 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0;
-            padding: 2rem 0;
         }
 
-        .register-card {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(99, 102, 241, 0.2);
-            border-radius: 1.5rem;
-            box-shadow: 0 20px 60px rgba(99, 102, 241, 0.1);
-            width: 100%;
-            max-width: 500px;
-            padding: 2.5rem;
-        }
-
-        h2 {
+        h1,
+        h2,
+        h3 {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 0.5rem;
         }
 
-        .form-label {
-            font-weight: 500;
-            color: #475569;
-            font-size: 0.9rem;
-        }
-
-        .form-control {
-            border-radius: 0.75rem;
-            padding: 0.75rem 1rem;
-            border: 1.5px solid rgba(99, 102, 241, 0.1);
-            background: rgba(255, 255, 255, 0.5);
-            transition: all 0.3s ease;
-        }
-
-        .form-control:focus {
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
-            border-color: var(--primary);
-            background: white;
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            border: none;
-            border-radius: 0.75rem;
-            padding: 0.75rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            margin-top: 1rem;
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.2);
-        }
-
-        .login-link {
-            text-align: center;
-            margin-top: 1.5rem;
-            font-size: 0.9rem;
-            color: #64748b;
-        }
-
-        .login-link a {
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .login-link a:hover {
-            text-decoration: underline;
-        }
-
-        .alert {
-            border-radius: 0.75rem;
-            font-size: 0.9rem;
-            border: none;
-        }
-
-        .alert-danger {
-            background-color: rgba(239, 68, 68, 0.1);
-            color: #7f1d1d;
-        }
-
-        .logo-icon {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(to bottom right, #4f46e5, #7c3aed);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1.5rem;
-            color: white;
-            font-weight: bold;
-            font-size: 1.5rem;
+        .bg-mesh {
+            background: linear-gradient(135deg, #f8fafc 0%, #ffffff 50%, #eef2ff 100%);
+            background-attachment: fixed;
         }
     </style>
 </head>
 
-<body>
-    <div class="register-card">
-        <div class="logo-icon">QP</div>
-        <div class="text-center mb-4">
-            <h2>Create Account</h2>
-            <p class="text-secondary small">Join us to start analyzing paper difficulty</p>
+<body class="bg-mesh min-h-screen flex items-center justify-center p-6 py-12">
+    <!-- Animated background elements -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div
+            class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-indigo-500/20 blur-[120px] animate-pulse">
+        </div>
+        <div
+            class="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] rounded-full bg-purple-500/20 blur-[120px] animate-pulse">
+        </div>
+    </div>
+
+    <div class="w-full max-w-lg relative z-10">
+        <!-- Logo Header -->
+        <div class="text-center mb-10 transform transition-all duration-700">
+            <div
+                class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-600 shadow-xl shadow-indigo-600/20 mb-6 transform hover:rotate-12 transition-transform duration-300">
+                <span class="text-white font-extrabold text-2xl">QP</span>
+            </div>
+            <h1 class="text-4xl font-bold text-slate-900 tracking-tight">Create Academic Account</h1>
+            <p class="text-slate-500 mt-2 text-lg">Join our smart assessment community</p>
         </div>
 
-        {% if error %}
-        <div class="alert alert-danger" role="alert">
-            {{ error }}
-        </div>
-        {% endif %}
+        <!-- Register Card -->
+        <div class="bg-white p-10 rounded-3xl shadow-xl border border-slate-100 relative overflow-hidden group">
+            {% if error %}
+            <div
+                class="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 text-sm flex items-center gap-3">
+                <i class="fas fa-exclamation-circle"></i>
+                {{ error }}
+            </div>
+            {% endif %}
 
-        <form method="POST">
-            <div class="mb-3">
-                <label for="name" class="form-label">Full Name</label>
-                <input type="text" class="form-control" id="name" name="name" placeholder="John Doe" required>
-            </div>
-            <div class="mb-3">
-                <label for="email" class="form-label">Email Address</label>
-                <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com"
-                    required>
-            </div>
-            <div class="mb-3">
-                <label for="school" class="form-label">School / College</label>
-                <input type="text" class="form-control" id="school" name="school" placeholder="Harvard University"
-                    required>
-            </div>
-            <div class="mb-3">
-                <label for="mobile" class="form-label">Mobile Number</label>
-                <input type="tel" class="form-control" id="mobile" name="mobile" placeholder="1234567890"
-                    pattern="[0-9]{10}" title="Please enter a 10-digit mobile number" required>
-            </div>
-            <div class="mb-3">
-                <label for="password" class="form-label">Password</label>
-                <input type="password" class="form-control" id="password" name="password" placeholder="••••••••"
-                    required>
-            </div>
-            <div class="mb-4">
-                <label for="confirm_password" class="form-label">Confirm Password</label>
-                <input type="password" class="form-control" id="confirm_password" name="confirm_password"
-                    placeholder="••••••••" required>
-            </div>
-            <button type="submit" class="btn btn-primary w-100">Create Account</button>
-        </form>
+            <form method="POST" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="name" class="block text-sm font-semibold text-slate-700 mb-2 ml-1">Full Name</label>
+                        <input type="text" id="name" name="name" required
+                            class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-300"
+                            placeholder="John Doe">
+                    </div>
+                    <div>
+                        <label for="email" class="block text-sm font-semibold text-slate-700 mb-2 ml-1">Email</label>
+                        <input type="email" id="email" name="email" required
+                            class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-300"
+                            placeholder="john@edu.com">
+                    </div>
+                </div>
 
-        <div class="login-link">
-            Already have an account? <a href="{{ url_for('login') }}">Login</a>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="school"
+                            class="block text-sm font-semibold text-slate-700 mb-2 ml-1">Institution</label>
+                        <input type="text" id="school" name="school" required
+                            class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-300"
+                            placeholder="University Name">
+                    </div>
+                    <div>
+                        <label for="mobile" class="block text-sm font-semibold text-slate-700 mb-2 ml-1">Mobile</label>
+                        <input type="tel" id="mobile" name="mobile" required pattern="[0-9]{10}"
+                            class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-300"
+                            placeholder="1234567890">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="password"
+                            class="block text-sm font-semibold text-slate-700 mb-2 ml-1">Password</label>
+                        <input type="password" id="password" name="password" required
+                            class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-300"
+                            placeholder="••••••••">
+                    </div>
+                    <div>
+                        <label for="confirm_password"
+                            class="block text-sm font-semibold text-slate-700 mb-2 ml-1">Confirm</label>
+                        <input type="password" id="confirm_password" name="confirm_password" required
+                            class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-300"
+                            placeholder="••••••••">
+                    </div>
+                </div>
+
+                <button type="submit"
+                    class="w-full py-4 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/20 transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2 group mt-4">
+                    <span>Create Account</span>
+                    <i class="fas fa-user-plus text-sm transform group-hover:translate-x-1 transition-transform"></i>
+                </button>
+            </form>
+
+            <div class="mt-8 pt-6 border-t border-slate-100 text-center">
+                <p class="text-slate-500 text-sm">
+                    Already have an account?
+                    <a href="{{ url_for('login') }}"
+                        class="text-indigo-600 font-bold hover:text-indigo-700 transition-colors ml-1">Log in here</a>
+                </p>
+            </div>
         </div>
+
+        <!-- Footer -->
+        <p class="text-center mt-8 text-slate-500 text-xs tracking-widest uppercase">
+            &copy; 2026 Question Paper Analyzer &bull; Academic Excellence
+        </p>
     </div>
 </body>
 

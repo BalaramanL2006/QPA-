@@ -2,13 +2,11 @@
 /* Complements Tailwind CSS with custom animations and effects */
 
 :root {
-    --primary: #6366f1;
-    --primary-dark: #4f46e5;
+    --primary: #4f46e5;
+    --primary-dark: #3730a3;
     --primary-light: #818cf8;
-    --accent: #a78bfa;
-    --text-dark: #0f172a;
-    --text-light: #64748b;
-    --bg-light: #f8fafc;
+    --accent: #9333ea;
+    --text-slate: #475569;
 }
 
 /* ===== SMOOTH SCROLLING ===== */
@@ -21,7 +19,12 @@ html {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
@@ -31,6 +34,7 @@ h1, h2, h3, h4, h5, h6 {
         opacity: 0;
         transform: translateY(30px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -46,19 +50,18 @@ h1, h2, h3, h4, h5, h6 {
     0% {
         background-position: -1000px 0;
     }
+
     100% {
         background-position: 1000px 0;
     }
 }
 
 .shimmer-button {
-    background: linear-gradient(
-        90deg,
-        var(--primary-dark),
-        var(--primary),
-        var(--primary-light),
-        var(--primary)
-    );
+    background: linear-gradient(90deg,
+            var(--primary-dark),
+            var(--primary),
+            var(--primary-light),
+            var(--primary));
     background-size: 1000px 100%;
     animation: shimmer 3s infinite;
 }
@@ -70,7 +73,7 @@ h1, h2, h3, h4, h5, h6 {
 /* ===== FOCUS GLOW EFFECT ===== */
 .focus-glow:focus {
     outline: none !important;
-    box-shadow: 
+    box-shadow:
         0 0 0 3px rgba(99, 102, 241, 0.1),
         0 0 20px rgba(99, 102, 241, 0.3),
         inset 0 0 0 1px rgba(99, 102, 241, 0.2) !important;
@@ -97,9 +100,12 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ===== PULSING PROGRESS BAR ===== */
 @keyframes pulse-glow {
-    0%, 100% {
+
+    0%,
+    100% {
         box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7);
     }
+
     50% {
         box-shadow: 0 0 0 10px rgba(99, 102, 241, 0);
     }
@@ -115,6 +121,7 @@ h1, h2, h3, h4, h5, h6 {
         opacity: 0;
         transform: translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -138,43 +145,25 @@ h1, h2, h3, h4, h5, h6 {
 /* ===== TAB BUTTON STYLING ===== */
 .tab-button {
     position: relative;
-    padding: 0.75rem 1.5rem;
+    padding: 0.75rem 1.75rem;
     border: none;
     background: transparent;
-    color: rgba(15, 23, 42, 0.6);
-    font-weight: 500;
+    color: #64748b;
+    font-weight: 600;
     font-size: 0.95rem;
     cursor: pointer;
-    transition: color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 0.75rem;
 }
 
 .tab-button:hover {
     color: var(--primary);
+    background: rgba(79, 70, 229, 0.05);
 }
 
 .tab-button.active {
     color: var(--primary);
-}
-
-.tab-button.active::after {
-    content: '';
-    position: absolute;
-    bottom: -1.5rem;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, var(--primary), var(--accent));
-    border-radius: 1px;
-    animation: slideIn 0.3s ease;
-}
-
-@keyframes slideIn {
-    from {
-        width: 0;
-    }
-    to {
-        width: 100%;
-    }
+    background: white;
 }
 
 /* ===== UPLOAD AREA STYLING ===== */
@@ -211,7 +200,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* ===== GRADIENT BACKGROUND ===== */
@@ -225,6 +216,17 @@ body {
     animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+#difficulty_level_text {
+    word-break: break-word;
+    line-height: 1.1;
+    overflow-wrap: break-word;
+}
+
+.bg-white.p-8.rounded-3xl {
+    min-width: 0;
+    /* Ensures flex/grid items can shrink below content size */
+}
+
 /* ===== TAB CONTENT ===== */
 .tab-content {
     animation: fadeInUp 0.3s ease;
@@ -235,7 +237,9 @@ body {
 }
 
 /* ===== PROGRESS BAR STYLING ===== */
-#easy_progress, #medium_progress, #hard_progress {
+#easy_progress,
+#medium_progress,
+#hard_progress {
     transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -249,6 +253,7 @@ body {
         opacity: 0;
         transform: translateY(-20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -291,16 +296,16 @@ button:active {
     .stat-number {
         font-size: 2rem;
     }
-    
+
     .tab-button {
         padding: 0.5rem 1rem;
         font-size: 0.85rem;
     }
-    
+
     body {
         background: linear-gradient(135deg, #ffffff 0%, #f8f6ff 100%);
     }
-    
+
     /* Ensure proper spacing on mobile */
     .glass-card {
         margin-bottom: 1rem;
@@ -317,11 +322,29 @@ button:active {
 }
 
 /* ===== PRINT STYLES ===== */
+/* ===== PROCESSING OVERLAY ===== */
+.processing-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    border-radius: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.processing-overlay.show {
+    display: flex;
+}
+
 @media print {
     body {
         background: white;
     }
-    
+
     .glass-card {
         box-shadow: none;
         border: 1px solid #ddd;
